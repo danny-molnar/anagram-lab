@@ -13,6 +13,24 @@ export function dictionary(text) {
 export function solve(entries, options, emit = () => {}, language = null) {
   const started = Date.now(), input = normalize(options.text);
   if (!input.length || input.length > 40) throw new Error('Enter between 1 and 40 letters.');
+  const pattern = (options.pattern || '').trim().toLowerCase().replace(/\s/g, '').replace(/[_.-]/g, '?');
+  if (pattern && /[^a-z?]/.test(pattern)) throw new Error('Use A–Z letters and ? (or _ . -) for unknown positions.');
+  if (pattern && pattern.length !== input.length) throw new Error(`The pattern must have ${input.length} positions, one for each input letter. Spaces are ignored.`);
+  if (pattern && !fits(counts(pattern.replace(/\?/g, '')), counts(input))) throw new Error('Known positions use letters that are not available.');
+  const matchesAt = (word, offset) => !pattern || [...word].every((letter, i) => pattern[offset + i] === '?' || pattern[offset + i] === letter);
+  function arrange(words, offset = 0) {
+    if (!pattern) return words;
+    if (!words.length) return [];
+    const tried = new Set();
+    for (let i = 0; i < words.length; i++) {
+      const word = words[i];
+      if (tried.has(word) || !matchesAt(word, offset)) continue;
+      tried.add(word);
+      const tail = arrange(words.filter((_, j) => j !== i), offset + word.length);
+      if (tail) return [word, ...tail];
+    }
+    return null;
+  }
   const min = Number(options.min || 1), max = Number(options.max || 3);
   if (!Number.isInteger(min) || min < 1 || min > 20 || !Number.isInteger(max) || max < 1 || max > 6) throw new Error('Check the word length and word count limits.');
   const required = (options.required || '').trim().split(/\s+/).map(normalize).filter(Boolean);
@@ -31,7 +49,7 @@ export function solve(entries, options, emit = () => {}, language = null) {
   const excluded = new Set((options.excluded || '').toLowerCase().split(/[\s,]+/).filter(Boolean));
   if (required.some(w => excluded.has(w))) throw new Error('A required word is also excluded.');
   const cost = language?.cost || (() => 10);
-  const candidates = entries.filter(e => e.word.length >= min && !excluded.has(e.word) && fits(e.letters, remaining))
+  const candidates = entries.filter(e => e.word.length >= min && !excluded.has(e.word) && fits(e.letters, remaining) && (exact !== 1 || matchesAt(e.word, 0)))
     .map(e => ({...e, cost: cost(e.word)}))
     .sort((a, b) => a.cost / a.word.length - b.cost / b.word.length || a.word.localeCompare(b.word));
   const results = [], seen = new Set();
@@ -40,6 +58,8 @@ export function solve(entries, options, emit = () => {}, language = null) {
   function add(words) {
     const key = [...words].sort().join(' ');
     if (seen.has(key)) return;
+    words = arrange(words);
+    if (!words) return;
     seen.add(key); results.push(words); batch.push(words);
     if (batch.length >= 25) { emit(batch); batch = []; }
     if (results.length >= limit) { limited = true; reason = 'results'; }
@@ -48,6 +68,7 @@ export function solve(entries, options, emit = () => {}, language = null) {
   // a recognised expression behind thousands of unrelated combinations.
   const vocabulary = new Set(entries.map(e => e.word));
   const phrases = (language?.phrases.get(signature(input)) || []).filter(words => {
+    if (pattern && !matchesAt(words.join(''), 0)) return false;
     if (words.length > (exact || max) || (exact && words.length !== exact)) return false;
     if (words.some(w => w.length < min || excluded.has(w) || !vocabulary.has(w))) return false;
     const available = [...words];

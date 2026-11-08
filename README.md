@@ -25,6 +25,7 @@ GitHub's workflow reference: https://docs.github.com/en/pages/getting-started-wi
 ## Features
 
 - Single-word and multi-word exact anagrams, using every letter exactly once.
+- Numbered crossword-style boxes for known positions, one per input letter. Leave unknown boxes blank; typing advances, arrow keys navigate, backspace moves back from an empty box, and Clear removes all crossers. Paste a pattern into any box: `silent` + `?i?e??` → `enlist`. Use `?`, `_`, `.` or `-` for unknown letters. Patterns cover every input letter, ignoring spaces; multi-word results are arranged to match, with one ordering per combination. Known phrases receive priority only when their recognised order matches.
 - Maximum or exact word count, minimum word length, required words and excluded words.
 - Case, spaces and punctuation are ignored; decomposable accents are folded to ASCII. Only English A–Z letters participate.
 - Repeated words are allowed; reordered duplicates are omitted.

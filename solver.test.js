@@ -22,6 +22,26 @@ test('exact count, minimum length and no match', () => {
   assert.equal(run({text:'zzz'}).results.length, 0);
 });
 test('result cap is explicit', () => { const result = run({limit:1}); assert.equal(result.results.length, 1); assert.equal(result.reason, 'results'); });
+test('known positions filter single words and accept wildcard variants', () => {
+  for (const pattern of ['?I?E??', '_i.e--', ' ?i? e?? ']) {
+    assert.deepEqual(run({mode:'single', pattern}).results, [['silent']]);
+  }
+  assert.deepEqual(run({mode:'single', pattern:'siltne'}).results, []);
+});
+test('patterns arrange phrases, including required and repeated words', () => {
+  assert.deepEqual(run({text:'the eyes', exact:2, pattern:'see????', required:'they'}).results, [['see','they']]);
+  assert.deepEqual(run({text:'catcat', exact:2, pattern:'c??c??'}).results, [['cat','cat']]);
+});
+test('invalid patterns fail clearly', () => {
+  assert.throws(() => run({pattern:'???'}), /6 positions/);
+  assert.throws(() => run({pattern:'?????1'}), /unknown positions/);
+  assert.throws(() => run({pattern:'zz????'}), /not available/);
+});
+test('known phrases obey positions before applying the result cap', () => {
+  const words = dictionary('they see the eyes');
+  const language = languageModel({}, 'they see');
+  assert.deepEqual(solve(words, {text:'the eyes', min:2, exact:2, pattern:'see????', limit:1}, () => {}, language).results, [['see','they']]);
+});
 test('rejects empty and overly long inputs', () => { assert.throws(() => run({text:'!!'})); assert.throws(() => run({text:'a'.repeat(41)})); });
 test('bundled dictionary finds familiar examples', () => {
   const full = dictionary(readFileSync(new URL('./data/words.txt', import.meta.url), 'utf8'));

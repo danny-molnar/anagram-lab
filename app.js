@@ -35,7 +35,56 @@ function render() {
   }
   $('results').replaceChildren(fragment);
 }
-function countLetters() { $('letter-count').textContent = `${normalize($('letters').value).length} letters`; }
+function syncPattern() {
+  const values = [...$('crossers').querySelectorAll('input')].map(box => box.value.toLowerCase() || '?');
+  $('pattern').value = values.some(value => value !== '?') ? values.join('') : '';
+  $('clear-pattern').disabled = !$('pattern').value;
+}
+function buildCrossers() {
+  const length = Math.min(normalize($('letters').value).length, 40);
+  const previous = [...$('crossers').querySelectorAll('input')].map(box => box.value);
+  if (previous.length === length) return;
+  const fragment = document.createDocumentFragment();
+  for (let i = 0; i < length; i++) {
+    const label = document.createElement('label'); label.className = 'crosser';
+    const number = document.createElement('span'); number.textContent = i + 1; number.setAttribute('aria-hidden', 'true');
+    const box = document.createElement('input');
+    box.type = 'text'; box.value = previous[i] || ''; box.placeholder = '·';
+    box.autocomplete = 'off'; box.autocapitalize = 'characters'; box.spellcheck = false;
+    box.setAttribute('aria-label', `Letter ${i + 1}, leave blank if unknown`);
+    box.setAttribute('aria-describedby', 'pattern-help');
+    const boxes = () => [...$('crossers').querySelectorAll('input')];
+    function fill(text) {
+      const letters = text.normalize('NFKD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z?_.-]/g, '');
+      if (!letters) { box.value = ''; syncPattern(); return; }
+      const inputs = boxes();
+      [...letters].slice(0, length - i).forEach((letter, j) => { inputs[i + j].value = /[a-z]/.test(letter) ? letter : ''; });
+      syncPattern(); inputs[Math.min(i + letters.length, length - 1)].focus();
+    }
+    box.onfocus = () => box.select();
+    box.oninput = event => { if (!event.isComposing) fill(box.value); };
+    box.oncompositionend = () => fill(box.value);
+    box.onpaste = event => { event.preventDefault(); fill(event.clipboardData.getData('text')); };
+    box.onkeydown = event => {
+      const inputs = boxes();
+      if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
+        event.preventDefault(); inputs[Math.max(0, Math.min(length - 1, i + (event.key === 'ArrowLeft' ? -1 : 1)))].focus();
+      } else if (event.key === 'Backspace' && !box.value && i > 0) {
+        event.preventDefault(); inputs[i - 1].value = ''; inputs[i - 1].focus(); syncPattern();
+      }
+    };
+    label.append(number, box); fragment.append(label);
+  }
+  $('crossers').replaceChildren(fragment); syncPattern();
+}
+$('clear-pattern').onclick = () => {
+  for (const box of $('crossers').querySelectorAll('input')) box.value = '';
+  syncPattern();
+};
+function countLetters() {
+  $('letter-count').textContent = `${normalize($('letters').value).length} letters`;
+  buildCrossers();
+}
 form.onsubmit = event => {
   event.preventDefault(); if (busy || !ready) return;
   const options = Object.fromEntries(new FormData(form)); options.max = $('max').value; options.exact = $('exact').value;
@@ -56,7 +105,7 @@ for (const radio of form.elements.mode) radio.onchange = () => {
 for (const button of document.querySelectorAll('[data-example]')) button.onclick = () => {
   if (busy) return;
   $('letters').value = button.dataset.example; form.elements.mode.value = button.dataset.mode;
-  form.elements.mode[0].onchange(); $('required').value = ''; $('excluded').value = ''; $('min').value = '2'; $('max').value = '3'; $('exact').value = '0'; countLetters();
+  form.elements.mode[0].onchange(); $('clear-pattern').click(); $('required').value = ''; $('excluded').value = ''; $('min').value = '2'; $('max').value = '3'; $('exact').value = '0'; countLetters();
   if (ready) form.requestSubmit();
 };
 $('download').onclick = () => {

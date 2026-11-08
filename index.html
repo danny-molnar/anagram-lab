@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#eef1ed"><title>Anagram Lab — Find what’s in your letters</title><link rel="stylesheet" href="style.css"></head>
+<body>
+<header><a class="brand" href="./"><span class="mark">a↔z</span> ANAGRAM LAB</a><span class="privacy">All letters stay in your browser <span>●</span></span></header>
+<main>
+<section class="intro"><p class="eyebrow">A LITTLE REARRANGEMENT. A NEW POSSIBILITY.</p><h1>Find what’s in <br>your <em>letters.</em></h1><p>One word or a whole new combination. Turn a jumble of letters into something unexpected.</p></section>
+<div class="workspace">
+<section class="panel"><form id="form">
+<div class="section-heading"><span class="step">01</span><h2>The starting point</h2></div>
+<label for="letters">Your letters or phrase</label><textarea id="letters" name="text" aria-describedby="input-help letter-count" autocapitalize="none" autocomplete="off" spellcheck="false" placeholder="Try “silent” or “the eyes”…" rows="3" required maxlength="200">the eyes</textarea>
+<div class="input-meta"><span id="input-help">Spaces & punctuation are ignored</span><span id="letter-count">7 letters</span></div>
+<fieldset class="modes"><legend>Find anagrams of</legend><label><input type="radio" name="mode" value="multi" checked><span>Multiple words</span></label><label><input type="radio" name="mode" value="single"><span>A single word</span></label></fieldset>
+<div class="fields"><div><label for="max">Maximum words</label><select id="max" name="max"><option>2</option><option selected>3</option><option>4</option><option>5</option><option>6</option></select></div><div><label for="min">Minimum word length</label><select id="min" name="min"><option>1</option><option selected>2</option><option>3</option><option>4</option><option>5</option><option>6</option></select></div></div>
+<details><summary>Fine-tune your search <span>+</span></summary><label for="exact">Exact number of words</label><select id="exact" name="exact"><option value="0">Any, up to the maximum</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option></select><label for="required">Must include these words</label><input id="required" name="required" autocapitalize="none" autocomplete="off" spellcheck="false" placeholder="e.g. they"><label for="excluded">Exclude these words</label><input id="excluded" name="excluded" autocapitalize="none" autocomplete="off" spellcheck="false" placeholder="Separate with spaces or commas"></details>
+<div class="actions"><button id="solve" type="submit">Find anagrams <span>↗</span></button><button id="stop" type="button" hidden>Stop search</button></div>
+<p class="small" id="dictionary-status" role="status">Loading the English dictionary…</p>
+</form></section>
+<section id="results-section" class="results-panel" aria-labelledby="results-title"><div class="section-heading"><span class="step">02</span><h2 id="results-title">The possibilities</h2><span id="badge">0</span></div><div class="results-controls"><a href="#form">↑ Edit letters & filters</a><button type="button" id="results-stop" hidden>Stop search</button></div><p id="status" role="status" aria-live="polite">Your next word is waiting.</p><div class="result-toolbar" hidden id="toolbar"><label for="filter">Filter results</label><input id="filter" type="search" autocapitalize="none" autocomplete="off" spellcheck="false" placeholder="Find a word in the results"><button id="download" type="button">Download .txt ↓</button></div><div id="results"><div class="empty"><span class="tiles"><i>t</i><i>r</i><i>y</i></span><h3>A fresh perspective, one letter at a time.</h3><p>Enter some letters and let’s see what turns up.<br>Every letter used once. Known phrases first.</p></div></div></section>
+</div>
+<section class="examples"><span>A FEW TO GET YOU STARTED</span><button data-example="silent" data-mode="single">silent <b>→</b> listen</button><button data-example="the eyes" data-mode="multi">the eyes <b>→</b> they see</button><button data-example="s white grapes" data-mode="multi">s white grapes <b>→</b> stage whisper</button></section>
+<footer><span>Made for curious minds & crossword people.</span><span>370k-word dictionary · No account · No server</span></footer>
+<p class="footnote">Dictionary matches can include rare words, abbreviations and offensive terms. Known phrases rank first; other combinations favour common words but may not form natural phrases. <a href="https://github.com/dwyl/english-words">Dictionary source</a> · <a href="data/README.md">Ranking data & credits</a> · <a href="data/LICENSE-dictionary.md">Licence</a></p>
+</main><script type="module" src="app.js"></script></body></html>
